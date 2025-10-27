@@ -2,6 +2,7 @@ import shapely
 import random
 import heapq
 import numpy as np
+import matplotlib.pyplot as plt
 from collections import deque
 from shapely import Polygon
 from shapely import LineString
@@ -48,13 +49,17 @@ def comp_cspace_obs(obs, robot):
 
 def check_point(pnt, csp_obs): #pnt is shapely point 
     for obs in csp_obs:
-        inv_point = pnt.within(obs)
-        if inv_point:
+        if obs.contains(pnt):
             return False
     return True   
-def get_points(cs_obs, x_left, x_right, y_top, y_low, n=200): #xl, xr yt, yb are bounds
-    points = []                                               #should maybe have exeption after reaching max iters? 
-    while len(points)<n:
+def get_points(cs_obs, x_left, x_right, y_top, y_low, n=200, max_iters = 2000): #xl, xr yt, yb are bounds
+    points = []  
+    iter = 0                                             #should maybe have exeption after reaching max iters? 
+    while len(points)<n and iter<max_iters:
+        iter +=1
+        if iter==max_iters:
+            print(f"Error: reached the max of {max_iters} iterations, with only {len(points)} found, exiting")
+            return None
         x = random.uniform(x_left, x_right)
         y = random.uniform(y_low, y_top)
         p = Point(x,y)
@@ -63,8 +68,7 @@ def get_points(cs_obs, x_left, x_right, y_top, y_low, n=200): #xl, xr yt, yb are
     return points       #returns List[Points], maybe convert to x,y tuples later? 
 def check_collision(pth, csp_obs): #path is LineString
     for obs in csp_obs:
-        intersection = shapely.intersection(pth,obs)
-        if not intersection.is_empty:
+        if pth.intersects(obs):
             return True
     return False   
 def get_dist(point1, point2): #point1, point2 are shapely points. returns euclidean dist
@@ -122,12 +126,14 @@ def a_star_search(gr, start_idx, goal_idx, points_lst):
     
 def path_planner(start, goal, obstacles, robot, x_l, x_r, y_t, y_b, n=300, k=10):
     p_robot = Polygon(robot)
-    p_obs = [Polygon(ob) for ob in Obstacles]
+    p_obs = [Polygon(ob) for ob in obstacles]
     
     cspace_obs_sq = comp_cspace_obs(p_obs, p_robot)
     cspace_obs_pol = [build_poly(tl, br) for tl, br in cspace_obs_sq]
 
     points = get_points(cspace_obs_pol, x_l, x_r, y_t, y_b, n)
+    if not points:
+        return None
     p_start = Point(start)
     p_goal = Point(goal)
 
