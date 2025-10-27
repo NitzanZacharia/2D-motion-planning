@@ -144,3 +144,5 @@ def path_planner(start, goal, obstacles, robot, x_l, x_r, y_t, y_b, n=300, k=10)
     else:
         print("path was not found")
         return None
+    
+    #to do: check if max iter needed in samples, delete(?) objects of robot and obstacle, add visualization 
