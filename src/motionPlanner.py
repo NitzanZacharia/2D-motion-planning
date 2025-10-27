@@ -146,9 +146,78 @@ def path_planner(start, goal, obstacles, robot, x_l, x_r, y_t, y_b, n=300, k=10)
     final_path = a_star_search(g, s_id, g_id, points_lst)
     if final_path:
         print(f"Path found with {len(final_path)} points")
-        return final_path
+        return final_path, points_lst, cspace_obs_pol
     else:
         print("path was not found")
-        return None
+        return None, None, None
     
-    #to do: check if max iter needed in samples, delete(?) objects of robot and obstacle, add visualization 
+    
+def plot_planner(final_path, points_lst, cspace_obs_pol):
+    
+    if not final_path:
+        print("No path to plot.")
+        return
+
+    _, ax = plt.subplots(figsize=(10, 10))
+    ax.set_title('2D C-Space and Path Planning using Minkowski Sum')
+    
+    for obs in cspace_obs_pol:
+        x, y = obs.exterior.xy
+        ax.fill(x, y, color='blue', alpha=0.5, zorder=3, label='C-Space Obstacle')
+    
+    p_x = [p.x for p in points_lst[2:]]
+    p_y = [p.y for p in points_lst[2:]]
+    ax.plot(p_x, p_y, 'o', color='gray', markersize=2, alpha=0.5, zorder=1, label='Random Samples')
+        
+    start_point = points_lst[0]
+    goal_point = points_lst[1]
+    ax.plot(start_point.x, start_point.y, 's', color='red', markersize=10, zorder=4, label='Start')
+    ax.plot(goal_point.x, goal_point.y, '*', color='green', markersize=15, zorder=4, label='Goal')
+
+    path_x = [p.x for p in final_path]
+    path_y = [p.y for p in final_path]
+    ax.plot(path_x, path_y, '-', color='black', linewidth=3, zorder=5, label='Final Path')
+
+    ax.set_xlabel('X')
+    ax.set_ylabel('Y')
+    ax.set_aspect('equal', adjustable='box')
+    h, l = ax.get_legend_handles_labels()
+    labels = dict(zip(l, h))
+    ax.legend(labels.values(), labels.keys(), loc='lower right')
+    
+    plt.grid(True)
+    plt.show()
+
+def main():
+    X_L, X_R = 0, 100
+    Y_B, Y_T = 0, 100 
+    ROBOT_SHAPE = [(0, 10), (10, 10), (10, 0), (0, 0)] 
+
+    START = (5, 5)
+    GOAL = (95, 95)
+
+    OBS_1 = [(20, 80), (30, 80), (30, 20), (20, 20)] 
+    OBS_2 = [(70, 80), (80, 80), (80, 20), (70, 20)] #tl, tr, br, bl
+    OBSTACLES_LIST = [OBS_1, OBS_2] 
+    
+   
+    NUM_SAMPLES = 300  
+    K_NEIGHBORS = 10   
+
+    print("Starting ...")
+    fin_path, points_lst, cspace_obs_pol = path_planner(
+        start=START, 
+        goal=GOAL, 
+        obstacles=OBSTACLES_LIST, 
+        robot=ROBOT_SHAPE, 
+        x_l=X_L, x_r=X_R, y_t=Y_T, y_b=Y_B, 
+        n=NUM_SAMPLES, 
+        k=K_NEIGHBORS
+    )
+
+    if fin_path:
+        plot_planner(fin_path, points_lst, cspace_obs_pol)
+
+if __name__ == "__main__":
+    main()
+    #to do: delete(?) objects of robot and obstacle, check visualization , inputs from user
