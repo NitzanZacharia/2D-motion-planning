@@ -88,6 +88,7 @@ def build_graph(points_lst, k, csp_obs): #builds graph, each point is a noe onne
                 graph[i][j] = d
                 graph[j][i] = d
     return graph
+
 def a_star_search(gr, start_idx, goal_idx, points_lst):
     n = len(points_lst)
     open = [(0,start_idx)]
@@ -100,7 +101,7 @@ def a_star_search(gr, start_idx, goal_idx, points_lst):
     d = get_dist(points_lst[start_idx], points_lst[goal_idx])
     opt_ctg[start_idx] = d
     while open:
-        curr_opt, curr_id = heapq.heappop(open)
+        _, curr_id = heapq.heappop(open)
         if curr_id == goal_idx: #if we got to goal, build path
             pt = deque()
             while curr_id in parent_node:
@@ -119,3 +120,27 @@ def a_star_search(gr, start_idx, goal_idx, points_lst):
                     heapq.heappush(open, (opt_ctg[ind], ind))
     return None
     
+def path_planner(start, goal, obstacles, robot, x_l, x_r, y_t, y_b, n=300, k=10):
+    p_robot = Polygon(robot)
+    p_obs = [Polygon(ob) for ob in Obstacles]
+    
+    cspace_obs_sq = comp_cspace_obs(p_obs, p_robot)
+    cspace_obs_pol = [build_poly(tl, br) for tl, br in cspace_obs_sq]
+
+    points = get_points(cspace_obs_pol, x_l, x_r, y_t, y_b, n)
+    p_start = Point(start)
+    p_goal = Point(goal)
+
+    if not check_point(p_start, cspace_obs_pol) or not check_point(p_goal, cspace_obs_pol):
+        print("Error - start or goal are on C-Space obstacle")
+        return None
+    points_lst = [p_start, p_goal]+points
+    s_id, g_id = 0, 1
+    g = build_graph(points_lst, k, cspace_obs_pol)
+    final_path = a_star_search(g, s_id, g_id, points_lst)
+    if final_path:
+        print(f"Path found with {len(final_path)} points")
+        return final_path
+    else:
+        print("path was not found")
+        return None
