@@ -2,6 +2,7 @@ import shapely
 import random
 import heapq
 import numpy as np
+from collections import deque
 from shapely import Polygon
 from shapely import LineString
 from shapely import Point
@@ -87,3 +88,34 @@ def build_graph(points_lst, k, csp_obs): #builds graph, each point is a noe onne
                 graph[i][j] = d
                 graph[j][i] = d
     return graph
+def a_star_search(gr, start_idx, goal_idx, points_lst):
+    n = len(points_lst)
+    open = [(0,start_idx)]
+    parent_node = {}
+    
+    past_cost = {i: float('inf') for i in range(n)}
+    past_cost[start_idx] = 0
+    
+    opt_ctg = {i: float('inf') for i in range(n)}
+    d = get_dist(points_lst[start_idx], points_lst[goal_idx])
+    opt_ctg[start_idx] = d
+    while open:
+        curr_opt, curr_id = heapq.heappop(open)
+        if curr_id == goal_idx: #if we got to goal, build path
+            pt = deque()
+            while curr_id in parent_node:
+                pt.appendleft(points_lst[curr_id])
+                curr_id = parent_node[curr_id]
+            pt.appendleft(points_lst[start_idx])
+            return pt
+        for ind, w in gr[curr_id].items():
+            curr_cost = past_cost[curr_id]+w
+            if curr_cost < past_cost[ind]:
+                parent_node[ind] = curr_id
+                past_cost[ind] = curr_cost
+                curr_d = get_dist(points_lst[ind], points_lst[goal_idx])
+                opt_ctg[ind] = curr_cost + curr_d
+                if ind not in [i for _, i in open]:
+                    heapq.heappush(open, (opt_ctg[ind], ind))
+    return None
+    
