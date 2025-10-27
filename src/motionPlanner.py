@@ -1,6 +1,7 @@
 import shapely
 import random
 import heapq
+import sys
 import numpy as np
 import matplotlib.pyplot as plt
 from collections import deque
@@ -189,6 +190,8 @@ def plot_planner(final_path, points_lst, cspace_obs_pol):
     plt.show()
 
 def main():
+    """print("Insert bounds as x_left, x_right, y_bottom, y_top")
+    args = sys.argv"""
     X_L, X_R = 0, 100
     Y_B, Y_T = 0, 100 
     ROBOT_SHAPE = [(0, 10), (10, 10), (10, 0), (0, 0)] 
