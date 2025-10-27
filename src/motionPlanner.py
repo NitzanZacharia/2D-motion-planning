@@ -1,5 +1,7 @@
 import shapely
 import random
+import heapq
+import numpy as np
 from shapely import Polygon
 from shapely import LineString
 from shapely import Point
@@ -58,9 +60,30 @@ def get_points(cs_obs, x_left, x_right, y_top, y_low, n=200): #xl, xr yt, yb are
         if check_point(p, cs_obs):
             points.append(p) 
     return points       #returns List[Points], maybe convert to x,y tuples later? 
-def check_collision(path, csp_obs): #path is LineString
+def check_collision(pth, csp_obs): #path is LineString
     for obs in csp_obs:
-        intersection = shapely.intersection(path,obs)
+        intersection = shapely.intersection(pth,obs)
         if not intersection.is_empty:
-            return False
-    return True    
+            return True
+    return False   
+def get_dist(point1, point2): #point1, point2 are shapely points. returns euclidean dist
+    p1 = np.array([point1.x, point1.y])
+    p2 = np.array([point2.x, point2.y])
+    d = np.linalg.norm(p1-p2)
+    return d
+
+def build_graph(points_lst, k, csp_obs): #builds graph, each point is a noe onnected to k nearest neighbors. 
+    n = len(points_lst)
+    if k>=n:
+        k = n-1
+    graph = {i: {} for i in range(n)}
+    neighbors = []
+    for i in range(n):
+        dists = [(get_dist(points_lst[i], p), j) for j,p in enumerate(points_lst) if i!=j]
+        k_neighbors = heapq.nsmallest(k, dists)
+        for d,j in k_neighbors:
+            pth = LineString([points_lst[i], points_lst[j]])
+            if not check_collision(pth, csp_obs): #not colliding
+                graph[i][j] = d
+                graph[j][i] = d
+    return graph
