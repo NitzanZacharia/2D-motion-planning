@@ -38,6 +38,8 @@ x_left, y_bottom, x_right, y_top
   * Robot shape: 10×10 square
   * Start: (5, 5)
   * Goal: (95,95)
+  * n (number of random sample points): 300
+  * k (number of nearest neighbors when building the graph):  10
 * Future improvements will include interactive input for these values.
   
 ## Contributing
