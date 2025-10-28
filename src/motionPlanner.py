@@ -8,25 +8,47 @@ from collections import deque
 from shapely import Polygon
 from shapely import LineString
 from shapely import Point
-class Robot(object):
+"""class Robot(object):
     def __init__(self,cords): #List[tuple] of 4 tuples to rep a square robot
         self.pos = Polygon(cords)
 class Obstacles(object):
     def __init__(self, cord_lst): #List[List[tuple]] list of of 4 tuples to rep a square obs
-        self.obs = cord_lst       
+        self.obs = cord_lst    """   
+
 def build_poly(top_left, low_right):
+    """turns rectangle represened by top left and bottom right corners to Shapely Polygon
+ 
+	@type top_left: (float, float)
+    @param top_left: (x_left, y_top)
+    @type low_right: (float, float)
+    @param low_right: (x_right, y_bottom)
+	@rtype: Shapely Polygon
+	"""
     x_left, y_left = top_left
     x_right, y_right = low_right
     poly = Polygon([(x_left, y_right), (x_right, y_right),(x_right, y_left), (x_left,y_left)])
     return poly
 
 def build_square(poly):
+    """turns Shapely Polygon to rectangle represened by top left and bottom right corners
+ 
+	@type poly: Shapely Polygon
+	@rtype: ((float, float), (float, float))
+    @returns rectangle represened by top left and bottom right corners
+	"""
     x_cords, y_cords = zip(*poly.exterior.coords[:-1])
     top_left = min(x_cords), max(y_cords)
     low_right = max(x_cords), min(y_cords)
     return top_left, low_right
 
 def mirror(square):
+    """returns the mirror image of a rectangle across the origin
+ 
+	@type square: ((float, float), (float, float))
+    @param square: rectangle represened by top left and bottom right corners
+	@rtype: ((float, float), (float, float))
+    @returns mirrored rectangle represened by top left and bottom right corners
+	"""
     (x_left, y_left), (x_right, y_right) = square
     min_R = (-x_right, -y_right), (-x_left, -y_left)
     return min_R
@@ -38,7 +60,7 @@ def minkowski_sum(square_a, square_b):
     low_right = (ax_right+bx_right, ay_right+by_right)
     return top_left, low_right
 
-def comp_cspace_obs(obs, robot):
+def comp_cspace_obs(obs, robot): #computes cspace obstacles using minkowski sum
     robot_sq = build_square(robot)
     lst = []
     m_robot = mirror(robot_sq)
@@ -48,7 +70,7 @@ def comp_cspace_obs(obs, robot):
         lst.append(exp_ob)
     return lst
 
-def check_point(pnt, csp_obs): #pnt is shapely point 
+def check_point(pnt, csp_obs): #pnt is shapely point, csp_obs is shapely Polygon, helper func, checks if point is valid (not in the polygon) 
     for obs in csp_obs:
         if obs.contains(pnt):
             return False
@@ -78,7 +100,7 @@ def get_dist(point1, point2): #point1, point2 are shapely points. returns euclid
     d = np.linalg.norm(p1-p2)
     return d
 
-def build_graph(points_lst, k, csp_obs): #builds graph, each point is a noe onnected to k nearest neighbors. 
+def build_graph(points_lst, k, csp_obs): #helper func for A*, builds graph where each point is a node connected to k nearest neighbors 
     n = len(points_lst)
     if k>=n:
         k = n-1
@@ -93,7 +115,7 @@ def build_graph(points_lst, k, csp_obs): #builds graph, each point is a noe onne
                 graph[j][i] = d
     return graph
 
-def a_star_search(gr, start_idx, goal_idx, points_lst):
+def a_star_search(gr, start_idx, goal_idx, points_lst): #A* search implementation 
     n = len(points_lst)
     open = [(0,start_idx)]
     parent_node = {}
@@ -124,7 +146,7 @@ def a_star_search(gr, start_idx, goal_idx, points_lst):
                     heapq.heappush(open, (opt_ctg[ind], ind))
     return None
     
-def path_planner(start, goal, obstacles, robot, x_l, x_r, y_t, y_b, n=300, k=10):
+def path_planner(start, goal, obstacles, robot, x_l, x_r, y_t, y_b, n=300, k=10): #wrapper to plan the path
     p_robot = Polygon(robot)
     p_obs = [Polygon(ob) for ob in obstacles]
     
@@ -187,12 +209,13 @@ def plot_planner(final_path, points_lst, cspace_obs_pol):
     
     plt.grid(True)
     plt.show()
-def get_obs(def_obs):
+
+def get_obs(def_obs): #function to get obstacles from user, validates input
     obs = []
     print("Enter one obstacle at a time, or press Enter for def obstacles")
     i = 1
     while True:
-        inp = input(f"Obstacle {i}  as (x_left, y_bottom, x_right, y_top), enter to finish: ").strip()
+        inp = input(f"Obstacle {i}  as (0<=x_left, y_bottom, x_right, y_top<=100), enter to finish: ").strip()
         if not inp:
             if len(obs)==0:
                 print("Using def obstacles")
@@ -202,7 +225,9 @@ def get_obs(def_obs):
         try:
             rect = [float(n.strip()) for n in inp.split(',')]
             if len(rect)!=4:
-                raise ValueError ("obstacle input must get 4 numbers!")
+                raise ValueError ("obstacle input must get 4 values!")
+            if x_left<0 or x_left>100 or x_right>100 or x_right<0 or y_top>100 or y_top<0 or y_bottom<0 or y_bottom>100:
+                raise ValueError ("obstacle input values must be between 0 and 100!")
             x_left, y_bottom, x_right, y_top = rect
             if x_left>x_right:
                 x_left, x_right = x_right, x_left
