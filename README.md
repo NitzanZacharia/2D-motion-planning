@@ -3,19 +3,21 @@ This mini project implements a 2D motion planning algorithm that finds a collisi
 The algorithm computes the configuration space using Minkowski Sum and performs A* search over a graph built from randomly sampled points.
 
 ## Install
-pip install numpy shapely matplotlib
+
 ```
+pip install numpy shapely matplotlib
 ```
 
 ## Usage
-All functionality is implemented in a single Python file.
-Run python src/motionPlanner.py directly to execute.
+All functionality is implemented in a single Python file, directly run:
+```
+python src/motionPlanner.py directly to execute.
+```
 
 You’ll be prompted to define rectangular obstacles manually in the format:
 
-x_left, y_bottom, x_right, y_top
-
 ```
+x_left, y_bottom, x_right, y_top
 ```
 
 ## Contributing
