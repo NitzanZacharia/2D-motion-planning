@@ -54,13 +54,32 @@ def mirror(square):
     return min_R
 
 def minkowski_sum(square_a, square_b):
+    """computes the Minkowski sum of two rectangles
+
+    @type square_a: ((float, float), (float, float))
+    @param square_a: rectangle represented by top left and bottom right corners
+    @type square_b: ((float, float), (float, float))
+    @param square_b: rectangle represented by top left and bottom right corners
+    @rtype: ((float, float), (float, float))
+    @returns: result rectangle from Minkowski sum, represented by top left and bottom right corners
+    """
     (ax_left, ay_left), (ax_right, ay_right) = square_a
     (bx_left, by_left), (bx_right, by_right) = square_b
     top_left = (ax_left+bx_left, ay_left+by_left)
     low_right = (ax_right+bx_right, ay_right+by_right)
     return top_left, low_right
 
-def comp_cspace_obs(obs, robot): #computes cspace obstacles using minkowski sum
+def comp_cspace_obs(obs, robot): 
+    """computes the Cspace obstacles for the robot by expanding the mirrored shape of the robot using
+    the Minkowski sum.
+
+    @type obs: list[((float, float), (float, float))]
+    @param obs: list of obstacles represented by top left and bottom right corners
+    @type robot: (float, float)
+    @param robot: robot pos represented by top left and bottom right corners
+    @rtype: list[((float, float), (float, float))]
+    @returns: list of Cspace obstacles represented by top left and bottom right corners
+    """ 
     robot_sq = build_square(robot)
     lst = []
     m_robot = mirror(robot_sq)
@@ -70,14 +89,44 @@ def comp_cspace_obs(obs, robot): #computes cspace obstacles using minkowski sum
         lst.append(exp_ob)
     return lst
 
-def check_point(pnt, csp_obs): #pnt is shapely point, csp_obs is shapely Polygon, helper func, checks if point is valid (not in the polygon) 
+def check_point(pnt, csp_obs): 
+    """helper function to check if a point is valid
+
+    @type pnt: shapely Point
+    @type csp_obs: list[shapely Polygon]
+    @param csp_obs: list of Cspace obstacles
+    @rtype: boolean
+    @returns: returns True if pnt is not in any Scpace obstacle
+    """ 
     for obs in csp_obs:
         if obs.contains(pnt):
             return False
     return True   
-def get_points(cs_obs, x_left, x_right, y_top, y_low, n=200, max_iters = 2000): #xl, xr yt, yb are bounds
+
+def get_points(cs_obs, x_left, x_right, y_top, y_low, n=200, max_iters = 2000): 
+    """samples n random valid points, exits early if max number of iterations reached  
+
+    @type csp_obs: list[shapely Polygon]
+    @param csp_obs: list of Cspace obstacles
+    @type x_left: float
+    @param x_left: left bound
+    @type x_right: float
+    @param x_right: right bound
+    @type y_top: float
+    @param y_top: upper bound
+    @type y_low: float
+    @param y_low: lower bound
+    @type n: int 
+    @param n: number of points to sample
+    @type max_iter: int 
+    @param max_iter: max number of iterations
+    
+    @rtype: list[shapely Point]
+    @returns: returns list of n valid points, or None ifmax number of iterations reached  
+    """ 
+
     points = []  
-    iter = 0                                             #should maybe have exeption after reaching max iters? 
+    iter = 0                                             
     while len(points)<n and iter<max_iters:
         iter +=1
         if iter==max_iters:
@@ -88,19 +137,48 @@ def get_points(cs_obs, x_left, x_right, y_top, y_low, n=200, max_iters = 2000): 
         p = Point(x,y)
         if check_point(p, cs_obs):
             points.append(p) 
-    return points       #returns List[Points], maybe convert to x,y tuples later? 
-def check_collision(pth, csp_obs): #path is LineString
+    return points        
+
+def check_collision(pth, csp_obs): 
+    """helper function to check if a path is valid
+
+    @type pth: shapely LineString
+    @type csp_obs: list[shapely Polygon]
+    @param csp_obs: list of Cspace obstacles
+    @rtype: boolean
+    @returns: returns True if path does not cross any Scpace obstacle
+    """ 
     for obs in csp_obs:
         if pth.intersects(obs):
             return True
     return False   
-def get_dist(point1, point2): #point1, point2 are shapely points. returns euclidean dist
+
+def get_dist(point1, point2):
+    """helper function to caculate euclidean distance between 2 points. 
+
+    @type point1: shapely Point
+    @type point2: shapely Point
+    @rtype: float
+    @returns: returns the euclidean distance between point1 and point2.
+    """ 
     p1 = np.array([point1.x, point1.y])
     p2 = np.array([point2.x, point2.y])
     d = np.linalg.norm(p1-p2)
     return d
 
-def build_graph(points_lst, k, csp_obs): #helper func for A*, builds graph where each point is a node connected to k nearest neighbors 
+def build_graph(points_lst, k, csp_obs): 
+    """helper function for a_star_search(), builds graph so each point is a node connected to k nearest neighbors.
+
+    
+    @type points_lst: list[shapely Point]
+    @param points_lst: list of the sampled points
+    @type k: int
+    @param k: number of neighbors for each node
+    @type csp_obs: list[shapely Polygon]
+    @param csp_obs: list of Cspace obstacles
+    @rtype: dict{int, dict{int, float}}
+    @returns: adjacency matrix as dict, keys are point indices, values are mapped neighbors to edge distance. 
+    """ 
     n = len(points_lst)
     if k>=n:
         k = n-1
@@ -115,7 +193,20 @@ def build_graph(points_lst, k, csp_obs): #helper func for A*, builds graph where
                 graph[j][i] = d
     return graph
 
-def a_star_search(gr, start_idx, goal_idx, points_lst): #A* search implementation 
+def a_star_search(gr, start_idx, goal_idx, points_lst):
+    """A* search implementation to find the shortest valid path between start and goal.
+    
+    @type gr: dict{int, dict{int, float}}
+    @param gr: graph as adjacency dict
+    @type start_idx: int
+    @param start_idx: index of start node in points_lst
+    @type goal_idx: int
+    @param goal_idx: index of goal node in points_lst
+    @type points_lst: list[shapely Point]
+    @param points_lst: list of the sampled points
+    @rtype: list[shapely Point]
+    @returns: a list (deque) of points representing the shortest path from start to goal if found, else None.
+    """ 
     n = len(points_lst)
     open = [(0,start_idx)]
     parent_node = {}
@@ -146,7 +237,28 @@ def a_star_search(gr, start_idx, goal_idx, points_lst): #A* search implementatio
                     heapq.heappush(open, (opt_ctg[ind], ind))
     return None
     
-def path_planner(start, goal, obstacles, robot, x_l, x_r, y_t, y_b, n=300, k=10): #wrapper to plan the path
+def path_planner(start, goal, obstacles, robot, x_l, x_r, y_t, y_b, n=300, k=10): 
+    """wrapper function to plan the path
+
+    @type start: (float, float)
+    @type goal: (float, float)
+    @type obstacles: list[list[(float, float)]]
+    @type robot: list[(float, float)]
+    @type x_l: float
+    @param x_l: left bound
+    @type x_r: float
+    @param x_r: right bounda
+    @type y_t: float
+    @param y_t: upper bound
+    @type y_b: float.
+    @param y_b: lower bound
+    @type n: int
+    @param n: number of points to sample
+    @type k: int
+    @param k: number of neighbors for each node
+    @rtype: list[shapely Point], list[shapely Point], list[shapely Polygon
+    @returns: tuple (final_path, points_lst, cspace_obs_pol) or (None, None, None) if path was not found 
+    """
     p_robot = Polygon(robot)
     p_obs = [Polygon(ob) for ob in obstacles]
     
@@ -175,7 +287,16 @@ def path_planner(start, goal, obstacles, robot, x_l, x_r, y_t, y_b, n=300, k=10)
     
     
 def plot_planner(final_path, points_lst, cspace_obs_pol):
-    
+    """ visualization of the Cspace and final path
+
+    @type final_path: list[shapely Point]
+    @param final_path: final path from start to goal
+    @type points_lst: list[shapely Point]
+    @param points_lst: sampled points used
+    @type cspace_obs_pol: list[shapely Polygon]
+    @param cspace_obs_pol: Cspace obstacles
+    @rtype: None
+    """
     if not final_path:
         print("No path to plot.")
         return
@@ -210,7 +331,14 @@ def plot_planner(final_path, points_lst, cspace_obs_pol):
     plt.grid(True)
     plt.show()
 
-def get_obs(def_obs): #function to get obstacles from user, validates input
+def get_obs(def_obs): 
+    """gets input from the user to create rectangle obstacles, validates input
+
+    @type def_obs: list[shapely Polygon]
+    @param def_obs: default obstacles if none were provided by the user
+    @rtype: list[shapely Polygon]
+    @returns: list obstacles provided by the user, or default obstacles if none were provided
+    """
     obs = []
     print("Enter one obstacle at a time, or press Enter for def obstacles")
     i = 1
@@ -273,4 +401,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-    #to do: delete(?) objects of robot and obstacle, check visualization , inputs from user
