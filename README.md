@@ -2,7 +2,7 @@
 This mini project implements a 2D motion planning algorithm that finds a collision free path for a square robot navigating among rectangular obstacles.
 The algorithm computes the configuration space using Minkowski Sum and performs A* search over a graph built from randomly sampled points.
 ## Key ideas
-*Compute the Cspace by expanding obstacles using the Minkowski sum.
+* Compute the Cspace by expanding obstacles using the Minkowski sum.
 
 * Randomly sample collision free points in Cspace.
 
