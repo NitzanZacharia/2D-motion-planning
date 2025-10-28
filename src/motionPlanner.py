@@ -141,7 +141,7 @@ def check_collision(pth, csp_obs):
     @type csp_obs: list[shapely Polygon]
     @param csp_obs: list of Cspace obstacles
     @rtype: boolean
-    @returns: returns True if path does not cross any Scpace obstacle
+    @returns: returns False if path does not cross any Scpace obstacle
     """ 
     for obs in csp_obs:
         if pth.intersects(obs):
