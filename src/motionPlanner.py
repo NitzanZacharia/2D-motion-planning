@@ -225,10 +225,9 @@ def main():
     START = (5, 5)
     GOAL = (95, 95)
 
-    OBS_1 = [(20, 80), (30, 80), (30, 20), (20, 20)] 
-    OBS_2 = [(70, 80), (80, 80), (80, 20), (70, 20)] #tl, tr, br, bl
-    OBSTACLES_LIST = [OBS_1, OBS_2] 
-    obs_list = get_obs(OBSTACLES_LIST)
+    #tl, tr, br, bl
+    DEF_OBSTACLES_LIST = [Polygon([(20, 80), (30, 80), (30, 20), (20, 20)]), Polygon([(42, 22), (45, 22), (45, 20), (42, 20)]),Polygon([(70, 80), (80, 80), (80, 20), (70, 20)])] 
+    obs_list = get_obs(DEF_OBSTACLES_LIST)
    
     NUM_SAMPLES = 300  
     K_NEIGHBORS = 10   
