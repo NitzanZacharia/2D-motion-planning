@@ -70,10 +70,8 @@ def comp_cspace_obs(obs, robot):
     """computes the Cspace obstacles for the robot by expanding the mirrored shape of the robot using
     the Minkowski sum.
 
-    @type obs: list[((float, float), (float, float))]
-    @param obs: list of obstacles represented by top left and bottom right corners
-    @type robot: (float, float)
-    @param robot: robot pos represented by top left and bottom right corners
+    @type obs: list[shapely Polygon]
+    @type robot: shapely Polygon
     @rtype: list[((float, float), (float, float))]
     @returns: list of Cspace obstacles represented by top left and bottom right corners
     """ 
