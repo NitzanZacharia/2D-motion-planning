@@ -366,8 +366,6 @@ def get_obs(def_obs):
     return obs
 
 def main():
-    """print("Insert bounds as x_left, x_right, y_bottom, y_top")
-    args = sys.argv"""
     X_L, X_R = 0, 100
     Y_B, Y_T = 0, 100 
     ROBOT_SHAPE = [(0, 10), (10, 10), (10, 0), (0, 0)] 
