@@ -1,7 +1,5 @@
-import shapely
 import random
 import heapq
-import sys
 import numpy as np
 import matplotlib.pyplot as plt
 from collections import deque
@@ -353,9 +351,10 @@ def get_obs(def_obs):
             rect = [float(n.strip()) for n in inp.split(',')]
             if len(rect)!=4:
                 raise ValueError ("obstacle input must get 4 values!")
+            
+            x_left, y_bottom, x_right, y_top = rect
             if x_left<0 or x_left>100 or x_right>100 or x_right<0 or y_top>100 or y_top<0 or y_bottom<0 or y_bottom>100:
                 raise ValueError ("obstacle input values must be between 0 and 100!")
-            x_left, y_bottom, x_right, y_top = rect
             if x_left>x_right:
                 x_left, x_right = x_right, x_left
             if y_bottom>y_top:
