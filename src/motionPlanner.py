@@ -8,12 +8,11 @@ from collections import deque
 from shapely import Polygon
 from shapely import LineString
 from shapely import Point
-"""class Robot(object):
-    def __init__(self,cords): #List[tuple] of 4 tuples to rep a square robot
-        self.pos = Polygon(cords)
-class Obstacles(object):
-    def __init__(self, cord_lst): #List[List[tuple]] list of of 4 tuples to rep a square obs
-        self.obs = cord_lst    """   
+
+
+"""Implementation a 2D motion planning algorithm that finds a collision free
+path for a squared robot navigating among rectengular obstacles. achieved by computing the 
+C-Space using Minkowski Sum and perform A* search over a graph built from randomly sampled points."""   
 
 def build_poly(top_left, low_right):
     """turns rectangle represened by top left and bottom right corners to Shapely Polygon
