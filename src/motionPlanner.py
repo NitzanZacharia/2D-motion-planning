@@ -83,7 +83,6 @@ def build_graph(points_lst, k, csp_obs): #builds graph, each point is a noe onne
     if k>=n:
         k = n-1
     graph = {i: {} for i in range(n)}
-    neighbors = []
     for i in range(n):
         dists = [(get_dist(points_lst[i], p), j) for j,p in enumerate(points_lst) if i!=j]
         k_neighbors = heapq.nsmallest(k, dists)
@@ -188,6 +187,33 @@ def plot_planner(final_path, points_lst, cspace_obs_pol):
     
     plt.grid(True)
     plt.show()
+def get_obs(def_obs):
+    obs = []
+    print("Enter one obstacle at a time, or press Enter for def obstacles")
+    i = 1
+    while True:
+        inp = input(f"Obstacle {i}  as (x_left, y_bottom, x_right, y_top), enter to finish: ").strip()
+        if not inp:
+            if len(obs)==0:
+                print("Using def obstacles")
+                return def_obs
+            else:
+                break
+        try:
+            rect = [float(n.strip()) for n in inp.split(',')]
+            if len(rect)!=4:
+                raise ValueError ("obstacle input must get 4 numbers!")
+            x_left, y_bottom, x_right, y_top = rect
+            if x_left>x_right:
+                x_left, x_right = x_right, x_left
+            if y_bottom>y_top:
+                y_top, y_bottom = y_bottom, y_top
+            ob = Polygon([(x_left, y_bottom), (x_right, y_bottom), (x_right, y_top), (x_left, y_top)])  
+            obs.append(ob)   
+            i+=1
+        except ValueError as ve:
+            print(f"Error in input: {ve}, try again")
+    return obs
 
 def main():
     """print("Insert bounds as x_left, x_right, y_bottom, y_top")
@@ -202,7 +228,7 @@ def main():
     OBS_1 = [(20, 80), (30, 80), (30, 20), (20, 20)] 
     OBS_2 = [(70, 80), (80, 80), (80, 20), (70, 20)] #tl, tr, br, bl
     OBSTACLES_LIST = [OBS_1, OBS_2] 
-    
+    obs_list = get_obs(OBSTACLES_LIST)
    
     NUM_SAMPLES = 300  
     K_NEIGHBORS = 10   
@@ -211,7 +237,7 @@ def main():
     fin_path, points_lst, cspace_obs_pol = path_planner(
         start=START, 
         goal=GOAL, 
-        obstacles=OBSTACLES_LIST, 
+        obstacles=obs_list, 
         robot=ROBOT_SHAPE, 
         x_l=X_L, x_r=X_R, y_t=Y_T, y_b=Y_B, 
         n=NUM_SAMPLES, 
