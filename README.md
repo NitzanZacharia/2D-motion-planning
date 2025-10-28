@@ -34,10 +34,10 @@ x_left, y_bottom, x_right, y_top
 * The implementation assumes axis-aligned rectangular obstacles and a square robot, rotations are currently not handled.
 * Because the robot shape is a square, mirroring is redundant, mirror logic is included for completeness and future generalization.
 * The program currently runs with the following default attributes:
-- Workspace: X<sub>L</sub> = 0, X<sub>R</sub> = 100,  Y<sub>B</sub> = 0, Y<sub>T</sub> = 100
-- Robot shape: 10×10 square
-- Start: (5, 5)
-- Goal: (95,95)
+  * Workspace: X<sub>L</sub> = 0, X<sub>R</sub> = 100,  Y<sub>B</sub> = 0, Y<sub>T</sub> = 100
+  * Robot shape: 10×10 square
+  * Start: (5, 5)
+  * Goal: (95,95)
 * Future improvements will include interactive input for these values.
   
 ## Contributing
