@@ -366,7 +366,7 @@ def get_obs(def_obs):
 def main():
     X_L, X_R = 0, 100
     Y_B, Y_T = 0, 100 
-    ROBOT_SHAPE = [(0, 10), (10, 10), (10, 0), (0, 0)] 
+    ROBOT_SHAPE =[(-5, 5), (5, 5), (5, -5), (-5, -5)] 
 
     START = (5, 5)
     GOAL = (95, 95)
